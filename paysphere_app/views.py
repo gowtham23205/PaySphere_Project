@@ -241,45 +241,142 @@ class LeaveTableViewSet(viewsets.ModelViewSet):
             return LeaveTable.objects.select_related("employee_id").filter(employee_id=user.id)
         return LeaveTable.objects.none()
 
-    
-class LeaveRequest(APIView):
+class PendingLeaveRequestsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        print("User:", request.user)  # Debugging line
-        print("User ID:", request.user.id)
-        data = request.data.copy()
-        data['employee_id'] = request.user.id  # Fix: Use modified data instead of request.data
-        serializer = LeaveTableSerializer(data=data)  # Fix: Pass modified data
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        # Only HR should access pending leave requests
+        if getattr(user, "role", None).lower() != "hr":
+            return Response({"error": "Only HR can view pending leave requests."}, status=status.HTTP_403_FORBIDDEN)
+        pending_leaves = LeaveTable.objects.filter(leave_status="pending").select_related("employee_id")
+        serializer = LeaveTableSerializer(pending_leaves, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.utils import timezone
 from datetime import date
-from .models import LeaveTable
 from django.shortcuts import get_object_or_404
+from .models import LeaveTable, UserProfile
+from .serializers import LeaveTableSerializer
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import F, Sum
 
+# class LeaveRequest(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         print("User:", request.user)  
+#         print("User ID:", request.user.id)
+
+#         user_profile = get_object_or_404(UserProfile, id=request.user.id)
+#         data = request.data.copy()
+#         data['employee_id'] = request.user.id  
+#         serializer = LeaveTableSerializer(data=data)
+
+#         if serializer.is_valid():
+#             days_requested = (serializer.validated_data['end_date'] - serializer.validated_data['start_date']).days + 1
+            
+#             # Check if remaining leaves are exceeded
+#             if user_profile.remaining_leaves < days_requested:
+#                 return Response({"error": "Not enough remaining leaves"}, status=status.HTTP_400_BAD_REQUEST)
+
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from django.db.models import ExpressionWrapper, DurationField
+class LeaveRequest(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        print("User:", request.user)
+        print("User ID:", request.user.id)
+
+        user_profile = get_object_or_404(UserProfile, id=request.user.id)
+        data = request.data.copy()
+        data['employee_id'] = request.user.id  
+        serializer = LeaveTableSerializer(data=data)
+
+        if serializer.is_valid():
+            start_date = serializer.validated_data['start_date']
+            end_date = serializer.validated_data['end_date']
+            days_requested = (end_date - start_date).days + 1
+
+            # Check if leave dates overlap with existing leave requests
+            existing_leaves = LeaveTable.objects.filter(
+                employee_id=request.user.id,
+                start_date__lte=end_date,
+                end_date__gte=start_date
+            )
+            
+            if existing_leaves.exists():
+                return Response({"error": "You have already applied for leave during these dates."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if remaining leaves are exceeded, including pending leave requests
+            pending_leaves = LeaveTable.objects.filter(
+                employee_id=request.user.id,
+                leave_status='Pending'
+            ).aggregate(total_pending=Sum(
+                ExpressionWrapper(F('end_date') - F('start_date') + timedelta(days=1), output_field=DurationField())
+            ))
+            total_pending_leaves = pending_leaves['total_pending'] or 0
+            if user_profile.remaining_leaves - total_pending_leaves < days_requested:
+                return Response({"error": "Not enough remaining leaves including pending requests"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class LeaveRequest(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         print("User:", request.user)
+#         print("User ID:", request.user.id)
+
+#         user_profile = get_object_or_404(UserProfile, id=request.user.id)
+#         data = request.data.copy()
+#         data['employee_id'] = request.user.id  
+#         serializer = LeaveTableSerializer(data=data)
+
+#         if serializer.is_valid():
+#             start_date = serializer.validated_data['start_date']
+#             end_date = serializer.validated_data['end_date']
+#             days_requested = (end_date - start_date).days + 1
+
+#             # Check if leave dates overlap with existing leave requests
+#             existing_leaves = LeaveTable.objects.filter(
+#                 employee_id=request.user.id,
+#                 start_date__lte=end_date,
+#                 end_date__gte=start_date
+#             )
+            
+#             if existing_leaves.exists():
+#                 return Response({"error": "You have already applied for leave during these dates."}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Check if remaining leaves are exceeded
+#             if user_profile.remaining_leaves < days_requested:
+#                 return Response({"error": "Not enough remaining leaves"}, status=status.HTTP_400_BAD_REQUEST)
+
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LeaveApproval(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, leave_id, *args, **kwargs):
         user = request.user
+        leave_request = get_object_or_404(LeaveTable, id=leave_id)
 
         # Ensure only HR can approve/reject leave requests
         if getattr(user, "role", None) != "hr":
             return Response({"error": "Only HR can approve or reject leave requests."}, status=status.HTTP_403_FORBIDDEN)
-
-        leave_request = get_object_or_404(LeaveTable, id=leave_id)
-
-        # HR cannot approve/reject their own leave request
-        if leave_request.employee_id == user.id:
-            return Response({"error": "You cannot approve or reject your own leave request."}, status=status.HTTP_403_FORBIDDEN)
 
         # Allow approval/rejection only if the current status is 'pending'
         if leave_request.leave_status != "pending":
@@ -290,27 +387,19 @@ class LeaveApproval(APIView):
         if status_choice.lower() not in ["approved", "rejected"]:
             return Response({"error": "Invalid status. Choose 'approved' or 'rejected'."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # If approved, update the leave balance
+        if status_choice.lower() == "approved":
+            user_profile = get_object_or_404(UserProfile, id=leave_request.employee_id.id)
+            days_requested = (leave_request.end_date - leave_request.start_date).days + 1
+
+            user_profile.leaves_taken += days_requested
+            user_profile.remaining_leaves -= days_requested
+            user_profile.save()
+
         leave_request.leave_status = status_choice.lower()
         leave_request.approved_on = timezone.now()  # Store approval/rejection date
         leave_request.approved_by_id = user.id  # Track who approved/rejected the request
         leave_request.save()
 
         return Response({"message": f"Leave request {status_choice} successfully."}, status=status.HTTP_200_OK)
-    
-    
-    
-    
-    
-    
-    
-# if status_choice.lower() == "approved":
-#             leave_days = (leave_request.end_date - leave_request.start_date).days + 1
-            
-#             if leave_request.remaining_leaves < leave_days:
-#                 return Response({"error": "Not enough remaining leaves."}, status=status.HTTP_400_BAD_REQUEST)
-            
-#             leave_request.leaves_taken += leave_days
-#             leave_request.remaining_leaves -= leave_days
-#             leave_request.save()
 
-#         return Response({"message": f"Leave request {status_choice.lower()} successfully."}, status=status.HTTP_200_OK)

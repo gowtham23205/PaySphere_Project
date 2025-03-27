@@ -2,7 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    home, CustomLoginView, RegisterView, UserViewSet,ActivateUserView,DeactivateUserView,UpdateUserView,DeleteUserView,LeaveTableViewSet,LeaveRequest,LeaveApproval
+    home, CustomLoginView, RegisterView, UserViewSet,ActivateUserView,DeactivateUserView,UpdateUserView,DeleteUserView,LeaveTableViewSet,LeaveRequest,LeaveApproval,PendingLeaveRequestsAPIView
 )
 
 router = DefaultRouter()
@@ -21,10 +21,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     
     path('api/leave/apply/', LeaveRequest.as_view(), name='leave_apply'),
+    path('api/leave/all/', LeaveTableViewSet.as_view({'get': 'list'}), name='all_leaves'), 
+    path('api/leave/pending/', PendingLeaveRequestsAPIView.as_view(), name='pending_leaves'),  
     path('api/leave/approval/<int:leave_id>/',LeaveApproval.as_view(), name='leave_approval'),
 ]
-
-
-
-
-

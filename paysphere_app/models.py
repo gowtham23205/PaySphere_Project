@@ -42,6 +42,10 @@ class UserProfile(AbstractBaseUser):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    
+    total_leaves = models.IntegerField(default=20)
+    leaves_taken = models.IntegerField(default=0)
+    remaining_leaves = models.IntegerField(default=20)
 
     objects = UserManager()
 
@@ -80,9 +84,6 @@ class LeaveTable(models.Model):
     applied_date = models.DateTimeField(auto_now_add=True)
     approved_on = models.DateTimeField(blank=True, null=True)
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="approved_leaves")
-    total_leaves = models.IntegerField(default=20)
-    leaves_taken = models.IntegerField(default=0)
-    remaining_leaves = models.IntegerField(default=20)
         
     def save(self, *args, **kwargs):
         if self.leave_status in ["approved", "rejected","Approved","Rejected"]:

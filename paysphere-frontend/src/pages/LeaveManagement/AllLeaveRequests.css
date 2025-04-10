@@ -1,0 +1,97 @@
+/* General Layout Fix */
+.table-container {
+    display: flex;
+    justify-content: center; /* Center the table horizontally */
+    align-items: center; /* Align content in the center vertically */
+    padding: 1.5rem;
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding does not cause overflow */
+  }
+  
+  table {
+    width: 100%;
+    max-width: 1000px; /* Add a maximum width to avoid the table stretching too much */
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  th,
+  td {
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  td {
+    font-weight: normal;
+    color: #555;
+  }
+  
+  /* Hover Effect for Rows */
+  tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  /* Status Color Styling */
+ /* Status Color Styling with Background */
+.status-approved {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.status-rejected {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+  
+  /* Error message styling */
+  .error-message {
+    color: #e74c3c;
+    font-size: 16px;
+    margin-top: 1rem;
+  }
+  
+  /* Heading */
+  h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  /* No Leave Requests Found */
+  .no-leave-message {
+    font-size: 16px;
+    color: #777;
+  }
+  

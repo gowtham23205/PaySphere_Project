@@ -1,8 +1,8 @@
 
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager ,User
 from django.conf import settings
-
+from django.utils.timezone import now
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -102,3 +102,66 @@ class LeaveTable(models.Model):
         
     def __str__(self):
         return f"{self.employee_id.email} - {self.leave_type} ({self.leave_status})"
+    
+
+class Salary(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('paid', 'Paid'),
+    ]
+
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="salaries")
+    basic_salary = models.FloatField()
+    gross_salary = models.FloatField()
+    net_salary = models.FloatField()
+    allowances = models.FloatField(default=0.0)
+    deductions = models.FloatField(default=0.0)
+    salary_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    payment_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(default=now)
+
+    def save(self, *args, **kwargs):
+        self.gross_salary = self.basic_salary + self.allowances
+        self.net_salary = self.gross_salary - self.deductions
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Salary for {self.employee.username} - {self.salary_status}"
+
+
+class Allowances(models.Model):
+    ALLOWANCE_TYPES = [
+        ('Bonus', 'Bonus'),
+        ('Overtime', 'Overtime'),
+        ('Travel', 'Travel'),
+        ('House Rent', 'House Rent'),
+        ('Daily Allowance', 'Daily Allowance'),
+    ]
+
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="allowances")
+    allowance_type = models.CharField(max_length=20, choices=ALLOWANCE_TYPES)
+    amount = models.FloatField()
+    created_at = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return f"{self.allowance_type} - {self.amount} for {self.employee.username}"
+
+
+class Deductions(models.Model):
+    DEDUCTION_TYPES = [
+        ('TDS', 'Tax Deducted at Source'),
+        ('PF', 'Provident Fund'),
+        ('INSURANCE', 'Insurance'),
+        ('LOP', 'Loss of Pay'),
+        ('OTHER', 'Other'),
+    ]
+
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deductions")
+    deduction_type = models.CharField(max_length=20, choices=DEDUCTION_TYPES)
+    amount = models.FloatField()
+    created_at = models.DateTimeField(default=now)
+    
+
+    def __str__(self):
+        return f"{self.deduction_type} - {self.amount} for {self.employee.username}"
+

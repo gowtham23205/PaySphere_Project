@@ -1,0 +1,52 @@
+.hr-dashboard-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dashboard-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .dashboard-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-card {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .dashboard-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .dashboard-actions button {
+    padding: 0.6rem 1.2rem;
+    background-color: #007bff;
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .dashboard-actions button:hover {
+    background-color: #0056b3;
+  }
+  

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'corsheaders',
+
 ]
 
 MIDDLEWARE = [
@@ -53,7 +55,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.csrf.CsrfViewMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000"]
+CORS_ALLOW_ALL_ORIGINS = True  # Allow frontend access
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["GET", "POST", "PATCH", "DELETE","PUT"]
+CORS_ALLOW_HEADERS = ["Authorization", "Content-Type"]
+
 
 ROOT_URLCONF = 'paysphere_pro.urls'
 
@@ -160,6 +171,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',  # Restrict access without login
     ],
+
 }
 
 from datetime import timedelta
@@ -171,3 +183,10 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Token expires in 60 mins
     # "REFRESH_TOKEN_LIFETIME": timedelta(days=1), 
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Your SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'gowthamkumar2308@gmail.com'  # Your email
+EMAIL_HOST_PASSWORD = 'woifcnwtahoiepln'  # App password (not your actual email password)

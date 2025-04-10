@@ -78,3 +78,83 @@ class LeaveTableSerializer(ModelSerializer):
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({"end_date": "End date must be after start date."})
         return data
+
+from paysphere_app.models import Salary
+
+# class SalarySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Salary
+#         # fields = ["employee", "basic_salary", "allowances", "deductions","salary_status","net_salary", "created_at"]
+#         fields = [
+#             'id', 'basic_salary', 'gross_salary', 'net_salary',
+#             'allowances', 'deductions', 'salary_status',
+#             'payment_date', 'created_at'
+#         ]
+#         def get_employee(self, obj):
+#             return obj.employee.id
+#         def get_month(self, obj):
+#             return obj.created_at.strftime('%B')  # e.g. "April"
+
+#         def get_year(self, obj):
+#             return obj.created_at.year
+from rest_framework import serializers
+from .models import Salary
+
+class SalarySerializer(serializers.ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    month = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Salary
+        fields = [
+            'id', 'employee', 'basic_salary', 'gross_salary', 'net_salary',
+            'allowances', 'deductions', 'salary_status',
+            'payment_date', 'created_at', 'month', 'year'
+        ]
+
+    def get_employee(self, obj):
+        return obj.employee.id  # Or obj.employee.email or username
+
+    def get_month(self, obj):
+        return obj.created_at.strftime('%B')
+
+    def get_year(self, obj):
+        return obj.created_at.year
+
+
+from paysphere_app.models import Allowances
+class AllowanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Allowances
+        fields = ['id', 'employee', 'allowance_type', 'amount', 'created_at']
+        read_only_fields = ['created_at']
+
+
+from paysphere_app.models import Deductions
+
+class DeductionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Deductions
+        fields = ['id', 'employee', 'deduction_type', 'amount', 'created_at']
+        read_only_fields = ['created_at']
+        
+from rest_framework import serializers
+from .models import Salary
+
+class PayslipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Salary
+        fields = ['basic_salary', 'allowances', 'gross_salary', 'deductions', 'net_salary']
+
+    def get_gross_salary(self, obj):
+        return obj.basic_salary + obj.allowances
+
+    def get_net_salary(self, obj):
+        return obj.gross_salary - obj.deductions
+
+    def get_allowances(self, obj):
+        return obj.allowances
+
+    def get_deductions(self, obj):
+        return obj.deductions

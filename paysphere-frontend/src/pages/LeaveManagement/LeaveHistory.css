@@ -1,0 +1,56 @@
+.leave-history {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  .leave-history h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .leave-history p {
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .text-red-500 {
+    color: #f56565;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .leave-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 23%;
+  }
+  
+  .leave-history-table th, .leave-history-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .leave-history-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .leave-history-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .leave-history-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .leave-history-table td {
+    font-size: 14px;
+    color: #555;
+  }

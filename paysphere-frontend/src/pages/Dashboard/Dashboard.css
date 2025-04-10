@@ -1,0 +1,90 @@
+/* Dashboard Container */
+.dashboard {
+    margin-left: 250px; /* Space for Sidebar */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* Dashboard Header */
+  .dashboard h2 {
+    background: #3498db;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    border-radius: 8px;
+  }
+  
+  /* Cards Layout */
+  .dashboard-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  /* Individual Card */
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-width: 250px;
+    text-align: center;
+  }
+  
+  .card h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+  
+  .card p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #3498db;
+  }
+  
+  /* Recent Leave Requests */
+  .recent-leaves {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+  }
+  
+  .recent-leaves h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+  
+  .recent-leaves ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .recent-leaves li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .recent-leaves li:last-child {
+    border-bottom: none;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .dashboard {
+      margin-left: 0;
+      padding: 10px;
+    }
+  
+    .dashboard-cards {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  

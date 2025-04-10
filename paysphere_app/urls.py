@@ -15,7 +15,6 @@ router.register(r'leaves', LeaveTableViewSet,basename='leaves')
 
 urlpatterns = [
     path('', home, name='home'),
-    # path('api/login/', CustomLoginView, name='login'),
     path('api/login/', CustomLoginView.as_view(), name='login'),
     path('api/register/', RegisterView.as_view(), name='register_user'),
     path('api/update-user/<int:user_id>/', UpdateUserView.as_view(), name='update-user'),

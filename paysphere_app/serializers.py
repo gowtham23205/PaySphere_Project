@@ -64,7 +64,6 @@ class LeaveTableSerializer(ModelSerializer):
     class Meta:
         model = LeaveTable
         fields = '__all__'
-        # fields = ['employee_id', 'leave_type', 'start_date', 'end_date', 'reason']
         
     def validate_start_date(self, value):
         if value < date.today():
@@ -81,22 +80,6 @@ class LeaveTableSerializer(ModelSerializer):
 
 from paysphere_app.models import Salary
 
-# class SalarySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Salary
-#         # fields = ["employee", "basic_salary", "allowances", "deductions","salary_status","net_salary", "created_at"]
-#         fields = [
-#             'id', 'basic_salary', 'gross_salary', 'net_salary',
-#             'allowances', 'deductions', 'salary_status',
-#             'payment_date', 'created_at'
-#         ]
-#         def get_employee(self, obj):
-#             return obj.employee.id
-#         def get_month(self, obj):
-#             return obj.created_at.strftime('%B')  # e.g. "April"
-
-#         def get_year(self, obj):
-#             return obj.created_at.year
 from rest_framework import serializers
 from .models import Salary
 

@@ -1,55 +1,14 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-
-// const SalaryDetails = () => {
-//     const [salary, setSalary] = useState(null);
-//     const [message, setMessage] = useState("");
-
-//     useEffect(() => {
-//         const fetchSalary = async () => {
-//             try {
-//                 const token = localStorage.getItem("token");
-//                 const response = await axios.get("http://127.0.0.1:8000/api/employee/salary/", {
-//                     headers: { Authorization: `Bearer ${token}` },
-//                 });
-//                 setSalary(response.data);
-//             } catch (error) {
-//                 console.error("Error fetching salary details", error);
-//                 setMessage("Failed to fetch salary details.");
-//             }
-//         };
-//         fetchSalary();
-//     }, []);
-
-//     return (
-//         <div>
-//             <h2>Salary Details</h2>
-//             {message && <p>{message}</p>}
-//             {salary ? (
-//                 <div>
-//                     <p><strong>Basic Salary:</strong> ${salary.basic}</p>
-//                     <p><strong>Allowances:</strong> ${salary.allowances}</p>
-//                     <p><strong>Deductions:</strong> ${salary.deductions}</p>
-//                     <p><strong>Net Salary:</strong> ${salary.net_salary}</p>
-//                 </div>
-//             ) : (
-//                 <p>Loading salary details...</p>
-//             )}
-//         </div>
-//     );
-// };
-
-// export default SalaryDetails;
-
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './SalaryDetails.css';  // Import the CSS file
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import './SalaryDetails.css';
 
 const SalaryDetails = () => {
   const [salaryDetails, setSalaryDetails] = useState(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true); // For loading state
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -59,7 +18,6 @@ const SalaryDetails = () => {
       return;
     }
 
-    // Fetch salary details when the component is mounted
     const fetchSalaryDetails = async () => {
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/salary/current_salary_details/', {
@@ -69,7 +27,6 @@ const SalaryDetails = () => {
         });
 
         if (response.status === 200) {
-          // Assuming the response structure matches your example
           setSalaryDetails(response.data);
         } else {
           setError('Unexpected response from the server.');
@@ -89,6 +46,30 @@ const SalaryDetails = () => {
     fetchSalaryDetails();
   }, [token]);
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(18);
+    doc.text('Salary Details', 14, 20);
+  
+    autoTable(doc, {
+      startY: 30,
+      head: [['Field', 'Value']],
+      body: [
+        ['Employee ID', salaryDetails.employee],
+        ['Basic Salary', `₹${salaryDetails.basic_salary}`],
+        ['Allowances', `₹${salaryDetails.allowances}`],
+        ['Deductions', `₹${salaryDetails.deductions}`],
+        ['Net Salary', `₹${salaryDetails.net_salary}`],
+        ['Salary Status', salaryDetails.salary_status],
+        ['Created At', new Date(salaryDetails.created_at).toLocaleString()],
+      ],
+    });
+  
+    doc.save('salary_details.pdf');
+  };
+  
+
   return (
     <div className="salary-details">
       <h2>Salary Details</h2>
@@ -103,6 +84,10 @@ const SalaryDetails = () => {
           <p><strong>Net Salary:</strong> ₹{salaryDetails.net_salary}</p>
           <p><strong>Salary Status:</strong> {salaryDetails.salary_status}</p>
           <p><strong>Created At:</strong> {new Date(salaryDetails.created_at).toLocaleString()}</p>
+
+          <button className="download-btn" onClick={downloadPDF}>
+            Download PaySlip
+          </button>
         </div>
       )}
     </div>

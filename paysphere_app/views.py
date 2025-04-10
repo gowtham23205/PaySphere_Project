@@ -529,25 +529,29 @@ class EmployeeSalaryStatusAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from .models import Salary
+from .serializers import SalarySerializer
+
 class EmployeeSalaryHistoryAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         user = request.user
+
         # Only HR should access the employee salary history
-        if getattr(user, "role", None).lower() != "hr":
+        if getattr(user, "role", "").lower() != "hr":
             return Response({"error": "Only HR can view employee salary history."}, status=status.HTTP_403_FORBIDDEN)
 
-        # Get current month and year
-        today = timezone.now()
-        current_month = today.month
-        current_year = today.year
+        # Get all salary records (past and present)
+        salary_records = Salary.objects.all().order_by('-created_at')  # Optional: Latest first
 
-        # Filter salary records up to the previous month
-        salary_records = Salary.objects.filter(created_at__lt=timezone.datetime(current_year, current_month, 1))
         serializer = SalarySerializer(salary_records, many=True)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     
 
 
@@ -631,6 +635,8 @@ class GeneratePayslip(APIView):
             # Update Salary Fields
             salary.gross_salary = serializer.get_gross_salary(salary)
             salary.net_salary = serializer.get_net_salary(salary)
+            salary.salary_status = "paid"
+            salary.payment_date = timezone.now()
             salary.save()
 
             # Send Email Notification
@@ -683,91 +689,3 @@ def get_employee_salary_history(request, user_id):
         return Response({'message': 'No salary records found for this employee.'}, status=200)
     serializer = SalarySerializer(salary_records, many=True)
     return Response(serializer.data)
-
-
-# views
-
-# from django.core.mail import send_mail
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-# from rest_framework.permissions import IsAuthenticated
-# from .models import Salary
-# from .serializers import PayslipSerializer
-
-# class GeneratePayslip(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def put(self, request, employee_id):
-#         try:
-#             salary = Salary.objects.get(employee__id=employee_id)  # Assuming Salary model has `employee` FK
-#             serializer = PayslipSerializer(salary)
-
-#             # Update Salary Fields
-#             salary.gross_salary = serializer.get_gross_salary(salary)
-#             salary.net_salary = serializer.get_net_salary(salary)
-#             salary.save()
-
-#             # Send Email Notification
-#             subject = "Payroll Processed - Payslip Available"
-#             message = f"""
-#             Dear {salary.employee.username},
-
-#             Your payroll has been processed for this month.
-
-#             Basic Salary: ₹{salary.basic_salary}
-#             Total Allowances: ₹{serializer.get_total_allowances(salary)}
-#             Gross Salary: ₹{salary.gross_salary}
-#             Total Deductions: ₹{serializer.get_total_deductions(salary)}
-#             Net Salary: ₹{salary.net_salary}
-
-#             Please check your payslip in the HR Portal.
-
-#             Best regards,
-#             Payroll Team
-#             """
-#             recipient = salary.employee.email  # Assuming Salary model links to User via `employee`
-#             send_mail(subject, message, 'your_email@gmail.com', [recipient])
-
-#             return Response({"message": "Payslip generated and email sent", "data": serializer.data})
-#         except Salary.DoesNotExist:
-#             return Response({"error": "Salary record not found"}, status=404)
-
-# # from django.utils import timezone
-
-# # class PayrollHistory(APIView):
-# #     permission_classes = [IsAuthenticated]
-
-# #     def get(self, request, *args, **kwargs):
-# #         user = request.user
-
-# #         # Get current month and year
-# #         today = timezone.now()
-# #         current_month = today.month
-# #         current_year = today.year
-
-# #         # Fetch salary records up to the previous month (excluding current month)
-# #         salary_history = Salary.objects.filter(
-# #             employee=user,
-# #             created_at__lt=timezone.datetime(current_year, current_month, 1, tzinfo=timezone.utc)
-# #         ).order_by('-created_at')
-
-# #         if not salary_history.exists():
-# #             return Response({"error": "No payroll history found."}, status=status.HTTP_404_NOT_FOUND)
-
-# #         serializer = SalarySerializer(salary_history, many=True)
-# #         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# # class PayrollHistory(APIView):
-# #     permission_classes = [IsAuthenticated]
-
-# #     def get(self, request, *args, **kwargs):
-# #         user = request.user
-
-# #         # Fetch all previous salary records for the logged-in user
-# #         salary_history = Salary.objects.filter(employee=user).order_by('-created_at')
-
-# #         if not salary_history.exists():
-# #             return Response({"error": "No payroll history found."}, status=status.HTTP_404_NOT_FOUND)
-
-# #         serializer = SalarySerializer(salary_history, many=True)
-# #         return Response(serializer.data, status=status.HTTP_200_OK)

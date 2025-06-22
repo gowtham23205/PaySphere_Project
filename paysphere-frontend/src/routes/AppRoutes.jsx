@@ -76,6 +76,9 @@ export default AppRoutes;
 
 
 
+
+
+
 // import { Routes, Route } from 'react-router-dom';
 // import Login from '../pages/Auth/Login';
 // import HRDashboard from '../pages/Dashboard/HRDashboard';
